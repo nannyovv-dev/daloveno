@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE ETERNAL UNIVERSE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Sarabun:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --gold-color: #dfba6b;
+            --gold-light: #fcf6ba;
+            --gold-dark: #aa771c;
+            --gold-gradient: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            --royal-black: #050507;
+            --dark-gray: #121216;
+            --border-gold: 1px solid rgba(191, 149, 63, 0.4);
+            --gold-shadow: 0 0 15px rgba(191, 149, 63, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #000;
+            font-family: 'Cormorant Garamond', 'Sarabun', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* จำลองหน้าจอเกมแบบยืดหยุ่น */
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 900px;
+            max-height: 750px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(191, 149, 63, 0.35);
+            background: var(--royal-black);
+            border: 2px solid #bf953f;
+            border-image: linear-gradient(to bottom, #bf953f, #000, #bf953f) 1;
+        }
+
+        .game-container::before, .game-container::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gold-color);
+            z-index: 100;
+            pointer-events: none;
+        }
+        .game-container::before { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+        .game-container::after { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+        /* --- ปุ่มควบคุมระบบเสียง (Audio Controller) --- */
+        .audio-control-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 150;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--gold-color);
+            color: var(--gold-color);
+            padding: 8px 12px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .audio-control-btn:hover {
+            background: var(--gold-color);
+            color: #000;
+            box-shadow: 0 0 10px var(--gold-color);
+        }
+
+        /* --- หน้าแรก/หน้าปกเกม --- */
+        .game-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 50px 30px;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+            z-index: 10;
+        }
+
+        .bg-image {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://i.ibb.co/tp0dpwQ2/8070-B2-B7-71-C8-4640-BCBF-552-E2-E188219.png');
+            background-size: cover;
+            background-position: center top;
+            z-index: 1;
+            animation: dreamMovement 20s ease-in-out infinite alternate;
+        }
+
+        .bg-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(10,10,12,0.1) 0%, rgba(10,10,12,0.4) 40%, rgba(10,10,12,0.95) 90%);
+            z-index: 2;
+        }
+
+        @keyframes dreamMovement {
+            0% { transform: scale(1.0); }
+            100% { transform: scale(1.05); }
+        }
+
+        .game-header {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+
+        .game-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            font-weight: 400;
+            letter-spacing: 6px;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(253, 246, 186, 0.2);
+        }
+
+        .menu-buttons {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn-royal {
+            background: #000000;
+            color: var(--gold-color);
+            border: 1px solid rgba(191, 149, 63, 0.5);
+            padding: 13px 0;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-transform: uppercase;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+
+        .btn-royal::before {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px; right: 2px; bottom: 2px;
+            border: 1px solid rgba(191, 149, 63, 0.15);
+            pointer-events: none;
+        }
+
+        .btn-royal:hover {
+            border-color: rgba(252, 246, 186, 1);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(191, 149, 63, 0.6);
+        }
+
+        /* --- หน้าจอโหลดทรัพยากร --- */
+        .download-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--royal-black);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease-in-out;
+        }
+
+        .download-screen.active { opacity: 1; pointer-events: auto; }
+
+        .download-title {
+            color: var(--gold-color);
+            font-family: 'Cinzel', serif;
+            font-size: 0.95rem;
+            letter-spacing: 4px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+
+        .progress-container {
+            width: 80%;
+            max-width: 400px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(191, 149, 63, 0.25);
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--gold-gradient);
+            box-shadow: 0 0 8px #bf953f;
+        }
+
+        .progress-text {
+            margin-top: 15px;
+            color: var(--gold-color);
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+        }
+
+        /* --- หน้าเรื่องเล่าความฝัน (Story Screen) --- */
+        .story-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000000;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 30px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .story-screen.active { opacity: 1; pointer-events: auto; }
+
+        .royal-emblem {
+            color: var(--gold-color);
+            font-size: 2rem;
+            margin-bottom: 30px;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 5px;
+        }
+
+        .story-content {
+            font-family: 'Sarabun', sans-serif;
+            color: #eaeaea;
+            font-size: 1.2rem;
+            line-height: 2.2;
+            text-align: center;
+            max-width: 550px;
+            margin-bottom: 50px;
+            border-top: 1px solid rgba(191, 149, 63, 0.2);
+            border-bottom: 1px solid rgba(191, 149, 63, 0.2);
+            padding: 40px 10px;
+            position: relative;
+        }
+
+        .story-content::before { content: "❖"; position: absolute; color: var(--gold-color); left: 50%; transform: translateX(-50%); font-size: 0.8rem; top: -8px; }
+        .story-content::after { content: "❖"; position: absolute; color: var(--gold-color); left: 50%; transform: translateX(-50%); font-size: 0.8rem; bottom: -8px; }
+
+        /* --- 👑 หน้าต่างข้อมูลตัวละครแบบอิสระ เต็มตา ไม่ต้องเลื่อน (Character Profile) --- */
+        .profile-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #141419 0%, #030304 100%);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 30px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .profile-screen.active { opacity: 1; pointer-events: auto; }
+
+        .profile-frame {
+            border: 1px solid rgba(191, 149, 63, 0.3);
+            width: 100%;
+            height: 100%;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0,0,0,0.5);
+            justify-content: space-between;
+        }
+
+        .royal-title-area {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(191, 149, 63, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .royal-subtitle {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-color);
+            font-size: 0.8rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+        }
+
+        .royal-char-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        /* ใช้ Flexbox/Grid อิสระเพื่อแยกฝั่งรูปภาพกับข้อมูลหลัก */
+        .profile-main-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 25px;
+            align-items: stretch;
+            flex-grow: 1;
+            height: calc(100% - 140px);
+        }
+
+        /* ส่วนแสดงรูปภาพแบบเต็มตัว ไม่โดนตัด และไม่ต้องเลื่อน */
+        .char-portrait-container-new {
+            flex: 0 0 35%;
+            border: 1px solid rgba(191, 149, 63, 0.25);
+            background: linear-gradient(to bottom, rgba(20,20,25,0.8), rgba(5,5,7,0.9));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            padding: 10px;
+            height: 100%;
+        }
+
+        .char-portrait-new {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.7));
+        }
+
+        /* ส่วนแสดงข้อมูลแยกหมวดหมู่สไตล์ UI เกม */
+        .char-info-dashboard {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .info-category-box {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(191, 149, 63, 0.15);
+            padding: 12px 15px;
+            border-radius: 4px;
+        }
+
+        .category-title {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-light);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--gold-color);
+            padding-left: 8px;
+            text-transform: uppercase;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px 20px;
+        }
+
+        .info-row-new {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(191, 149, 63, 0.08);
+            padding: 4px 0;
+            font-size: 0.9rem;
+        }
+
+        .info-label-new {
+            color: var(--gold-color);
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+        }
+
+        .info-value-new {
+            color: #e5e5e5;
+            font-family: 'Sarabun', sans-serif;
+            font-weight: 300;
+        }
+
+        .bio-box-new {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .bio-text-new {
+            color: #d1d1d1;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.88rem;
+            line-height: 1.6;
+            text-indent: 20px;
+            text-align: justify;
+        }
+
+        /* เซ็ตแผงปุ่มควบคุมด้านล่างใหม่แยกฝั่งชัดเจน */
+        .profile-action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .btn-profile-action {
+            flex: 1;
+        }
+
+        /* --- หน้าฉากเกมเพิ่มเติม --- */
+        .game-play-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 45; opacity: 0; pointer-events: none;
+            transition: opacity 1.5s ease-in-out; background: #000;
+        }
+        .game-play-screen.active { opacity: 1; pointer-events: auto; }
+
+        .game-bg-novel {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://i.ibb.co/3YMcfwjn/IMG-1859.png');
+            background-size: cover; background-position: center; z-index: 1;
+        }
+
+        .sunlight-beam {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 10% 10%, rgba(255, 230, 160, 0.45) 0%, rgba(0,0,0,0) 70%);
+            mix-blend-mode: screen; opacity: 0; z-index: 2;
+        }
+        .sunlight-beam.shine { animation: sunGlow 3s ease-out forwards; }
+
+        @keyframes sunGlow {
+            0% { opacity: 0; }
+            40% { opacity: 1; background: #fff; }
+            100% { opacity: 0.8; }
+        }
+
+        .novel-illustration {
+            position: absolute;
+            bottom: 15%; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            width: 80%; height: 55%;
+            background-image: url('https://i.ibb.co/0pDMtWZG/41498-D56-278-D-42-A3-A848-1-B8-FB2421-EB0.png');
+            background-size: contain; background-repeat: no-repeat; background-position: center bottom;
+            z-index: 3; opacity: 0;
+            transition: opacity 2s ease-in-out, transform 2s ease-out;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+        }
+        .novel-illustration.fade-in { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .novel-overlay {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 50%;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%);
+            z-index: 4;
+        }
+
+        .dialogue-box {
+            position: absolute;
+            bottom: 25px; left: 50%; transform: translateX(-50%);
+            width: 90%; min-height: 130px;
+            background: rgba(10, 10, 12, 0.95);
+            border: 2px solid var(--gold-color);
+            border-radius: 4px; padding: 20px; z-index: 5;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.95);
+            display: flex; flex-direction: column; cursor: pointer;
+        }
+
+        .dialogue-name {
+            font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 8px;
+            background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .dialogue-text {
+            font-family: 'Sarabun', sans-serif; font-weight: 300; font-size: 0.98rem; line-height: 1.6; color: var(--gold-light);
+        }
+
+        .next-indicator { position: absolute; bottom: 8px; right: 12px; color: var(--gold-color); font-size: 0.7rem; animation: bounceIndicator 1.2s infinite alternate; }
+        @keyframes bounceIndicator { 0% { transform: translateY(0); opacity: 0.4; } 100% { transform: translateY(-4px); opacity: 1; } }
+
+        /* --- ✨ เอฟเฟกต์ดวงดาวประกายสีขาวระยิบระยับ (White Star Sparkles) --- */
+        .sparkle-particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+            color: #ffffff;
+            font-size: 20px;
+            line-height: 1;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 15px rgba(255, 255, 255, 0.4);
+            animation: starParticleFade 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        @keyframes starParticleFade {
+            0% {
+                transform: translate(0, 0) scale(0.2) rotate(0deg);
+                opacity: 0;
+            }
+            15% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y)) scale(1.2) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        /* --- ระบบคำแนะนำลอยแบบเดิม --- */
+        .overlay-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); z-index: 50;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+        }
+        .overlay-layer.active { opacity: 1; pointer-events: auto; }
+
+        .countdown-number {
+            font-size: 5rem; color: var(--gold-color); font-family: 'Cinzel', serif;
+            text-shadow: 0 0 20px rgba(191,149,63,0.6); display: none;
+        }
+
+        .info-box {
+            width: 85%; max-width: 450px; background: rgba(10, 10, 12, 0.98); border: 1px solid var(--gold-color);
+            padding: 40px 25px; text-align: center; position: relative;
+            transform: translateY(40px); opacity: 0; transition: transform 1.2s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 1s ease;
+            display: none; box-shadow: 0 10px 35px rgba(0,0,0,0.9);
+        }
+        .info-box.float-up { display: block; opacity: 1; transform: translateY(0); }
+
+        .info-text { color: #fcf6ba; font-family: 'Sarabun', sans-serif; font-weight: 300; line-height: 2.0; font-size: 1.05rem; }
+
+        .close-btn {
+            position: absolute; top: -15px; right: -15px; width: 34px; height: 34px; background: #000;
+            border: 1px solid var(--gold-color); color: var(--gold-color); border-radius: 50%; cursor: pointer;
+            font-family: 'Cinzel', serif; font-size: 1.1rem; display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+
+        /* ==================== 👑 ฉากเต้นรำและตอนจบของฝันดีไซน์พิเศษ ==================== */
+        .ending-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 60; opacity: 0; pointer-events: none;
+            transition: opacity 2s ease-in-out;
+            background: radial-gradient(circle at center, #110e1a 0%, #030205 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        .ending-screen.active { opacity: 1; pointer-events: auto; }
+
+        /* ตัวแสดงผลรูปภาพเต้นรำแบบซูมช้าๆ อบอุ่น */
+        .ending-image-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .ending-image {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            background-position: center top; /* 🌟 ปรับให้จุดศูนย์กลางของภาพเริ่มต้นจากด้านบน เพื่อให้เห็นใบหน้าชัดเจน */
+            opacity: 0;
+            transform: scale(1.15); /* 🌟 เพิ่มสเกลเริ่มต้นเล็กน้อยเพื่อเตรียมซูมรับใบหน้า */
+            transition: opacity 3s ease-in-out, transform 15s cubic-bezier(0.1, 0.8, 0.3, 1);
+        }
+        .ending-screen.active .ending-image {
+            opacity: 0.85;
+            transform: scale(1.08) translateY(0px); /* 🌟 ซูมค้างในองศาที่เน้นใบหน้าของทั้งคู่ประมาณครึ่งบน */
+        }
+
+        /* เลเยอร์ซ้อนกันแสงแข็งและเพิ่มความนุ่มนวล */
+        .ending-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(10,8,15,0.4) 50%, rgba(5,4,8,0.95) 95%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* เอฟเฟกต์แสงวาบสีขาวตอนเปลี่ยนผ่านฉาก (White Flash Effect) */
+        .white-flash {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff;
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease-out;
+        }
+        .white-flash.active {
+            opacity: 1;
+            transition: none;
+        }
+
+        /* ส่วนกล่องข้อความบรรยายตอนจบความฝัน */
+        .ending-dialogue-box {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(10, 8, 15, 0.9);
+            border: 1px solid rgba(223, 186, 107, 0.5);
+            box-shadow: 0 0 25px rgba(223, 186, 107, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.05);
+            padding: 25px 30px;
+            border-radius: 4px;
+            z-index: 3;
+            text-align: center;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 2s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 2s ease;
+        }
+        .ending-screen.active .ending-dialogue-box {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .ending-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            letter-spacing: 4px;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .ending-text {
+            font-family: 'Sarabun', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #f3ece0;
+            font-weight: 300;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* ละอองประกายแสงระยิบระยับลอยบนฉากจบ (Dust Particles) */
+        .ending-sparkles {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .dust-particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255,246,186,0.8) 0%, rgba(255,246,186,0) 70%);
+            border-radius: 50%;
+            animation: floatDust infinite ease-in-out;
+            opacity: 0;
+        }
+        @keyframes floatDust {
+            0% { transform: translateY(100px) translateX(0) scale(0.5); opacity: 0; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-200px) translateX(50px) scale(1.2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container" id="container">
+        
+        <!-- ปุ่มระบบสวิตช์เปิด/ปิดเสียง -->
+        <button class="audio-control-btn" onclick="toggleMute(event)">
+            <span id="audioIcon">🔊</span> <span id="audioStatusText">SOUND: ON</span>
+        </button>
+        
+        <!-- หน้าแรก/หน้าปกเกม -->
+        <div class="game-screen" id="mainScreen">
+            <div class="bg-image"></div>
+            <div class="bg-overlay"></div>
+
+            <div class="game-header">
+                <h1 class="game-title">THE ETERNAL UNIVERSE</h1>
+            </div>
+
+            <div class="menu-buttons">
+                <button class="btn-royal" onclick="playClickSound(); startDownload();">Play</button>
+                <button class="btn-royal" onclick="playClickSound(); showInstructions();">คำแนะนำ</button>
+            </div>
+        </div>
+
+        <!-- หน้าจอโหลดทรัพยากร -->
+        <div class="download-screen" id="downloadScreen">
+            <div class="download-title">Downloading Resources</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
+
+        <!-- หน้าเรื่องเล่าความฝัน -->
+        <div class="story-screen" id="storyScreen">
+            <div class="royal-emblem">✦ ❖ ✦</div>
+            <div class="story-content" id="storyText">
+                “ในโลกแห่งความฝัน ล้วนสามารถเกิดเหตุการณ์ได้ทุกอย่าง แต่ในความฝันของเรา ใครกันล่ะที่เป็นผู้กำหนดอย่างแท้จริง ไม่มีผู้ใดกล่าวบอกกับเราได้หรอก…“
+            </div>
+            <button class="btn-royal btn-bottom" style="width: 60%; max-width: 280px;" onclick="playClickSound(); showCharacterProfile();">Next</button>
+        </div>
+
+        <!-- 👑 หน้าข้อมูลตัวละครดีไซน์ใหม่ -->
+        <div class="profile-screen" id="profileScreen">
+            <div class="profile-frame">
+                
+                <div class="royal-title-area">
+                    <p class="royal-subtitle">The Royal Family Profile</p>
+                    <h2 class="royal-char-name">องค์รัชทายาทดาเรียน มาเรียมซาน</h2>
+                </div>
+
+                <div class="profile-main-layout">
+                    
+                    <!-- ฝั่งซ้าย: รูปภาพตัวละครเต็มตัวชัดเจน -->
+                    <div class="char-portrait-container-new">
+                        <img src="https://i.ibb.co/QvL2qzww/F4-A3-C494-9736-47-BD-9-FDB-A94-E7-E26-E568.png" alt="องค์รัชทายาทดาเรียน" class="char-portrait-new">
+                    </div>
+
+                    <!-- ฝั่งขวา: แผงหน้าปัดข้อมูล -->
+                    <div class="char-info-dashboard">
+                        
+                        <!-- หมวดหมู่ข้อมูลทั่วไป -->
+                        <div class="info-category-box">
+                            <div class="category-title">General Information</div>
+                            <div class="info-grid">
+                                <div class="info-row-new"><span class="info-label-new">ชื่อเต็ม</span><span class="info-value-new">ดาเรียน มาเรียมซาน</span></div>
+                                <div class="info-row-new"><span class="info-label-new">ฐานันดรศักดิ์</span><span class="info-value-new">รัชทายาทอันดับ 1</span></div>
+                                <div class="info-row-new"><span class="info-label-new">อายุ</span><span class="info-value-new">20 ปีบริบูรณ์</span></div>
+                                <div class="info-row-new"><span class="info-label-new">ฝ่ายราชวงศ์</span><span class="info-value-new">จักรวรรดิมาเรียมซาน</span></div>
+                            </div>
+                        </div>
+
+                        <!-- หมวดหมู่ข้อมูลสรีระ/เอกลักษณ์ -->
+                        <div class="info-category-box">
+                            <div class="category-title">Physical Appearance</div>
+                            <div class="info-grid">
+                                <div class="info-row-new"><span class="info-label-new">ส่วนสูง/น้ำหนัก</span><span class="info-value-new">190 cm / 82 kg</span></div>
+                                <div class="info-row-new"><span class="info-label-new">รูปลักษณ์</span><span class="info-value-new">ผมดำ ตาคม ผิวขาว</span></div>
+                                <div class="info-row-new"><span class="info-label-new">สถานะ</span><span class="info-value-new">กำลังเสาะหาพระชายา</span></div>
+                                <div class="info-row-new"><span class="info-label-new">เอกลักษณ์</span><span class="info-value-new">สง่างาม น่าเกรงขาม</span></div>
+                            </div>
+                        </div>
+
+                        <!-- หมวดหมู่ประวัติ -->
+                        <div class="info-category-box bio-box-new">
+                            <div class="category-title">Biography</div>
+                            <p class="bio-text-new">
+                                องค์รัชทายาทดาเรียน ถือกำเนิดขึ้นท่ามกลางสายเลือดบริสุทธิ์ของจักรวรรดิมาเรียมซานอันเกรียงไกร ภายใต้การปกครองของราชอาณาจักรวิแคสเลอร์ พระองค์ทรงดำรงตำแหน่งเป็นทายาทสืบทอดบัลลังก์อันดับที่ 1 ผู้แบกรับชะตากรรมของอาณาจักรทั้งหมดไว้บนบ่า เพื่อเข้าร่วมพิธีอภิเษกสมรสและขึ้นครองราชย์อย่างเป็นทางการให้ไร้ซึ่งข้อผิดพลาด
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ปุ่มควบคุมด้านล่าง -->
+                <div class="profile-action-buttons">
+                    <button class="btn-royal btn-profile-action" onclick="playClickSound(); resetToTitle();">Back to Title</button>
+                    <button class="btn-royal btn-profile-action" onclick="playClickSound(); startNovelGame();">Start Adventure</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- หน้าฉากเกมคัทซีนนิยาย -->
+        <div class="game-play-screen" id="gamePlayScreen">
+            <div class="game-bg-novel" id="novelBg"></div>
+            <div class="sunlight-beam" id="sunlight"></div>
+            <div class="novel-illustration" id="novelIllust"></div>
+            <div class="novel-overlay"></div>
+
+            <div class="dialogue-box" onclick="nextDialogue()">
+                <div class="dialogue-name" id="speakerName">???</div>
+                <div class="dialogue-text" id="dialogueText">...</div>
+                <div class="next-indicator">TOUCH ❖</div>
+            </div>
+        </div>
+
+        <!-- หน้าจอเอฟเฟกต์ตอนจบของความฝัน (Ending & Ballroom Screen) -->
+        <div class="ending-screen" id="endingScreen">
+            <div class="ending-image-container">
+                <img src="https://i.ibb.co/nNbc8rF4/3-B2-C0164-E82-E-4-EA5-B92-F-D2090207-FBB6.png" class="ending-image" id="endingImage">
+            </div>
+            <div class="ending-overlay"></div>
+            <div class="ending-sparkles" id="endingSparkles"></div>
+
+            <div class="ending-dialogue-box">
+                <div class="ending-title">THE ROYAL DREAM ENDING</div>
+                <div class="ending-text" id="endingText">
+                    เสียงดนตรีวอลทซ์อันอ่อนหวานพัดพากลิ่นอายแห่งความฝัน ค่ำคืนนี้ยาวนานราวกับไม่มีวันจบลง... ท่ามกลางประกายไฟดวงดาวและห้วงเวลาอันเป็นนิรันดร์
+                </div>
+                <button class="btn-royal" style="width: 100%;" onclick="playClickSound(); resetToTitle();">ตื่นจากความฝัน</button>
+            </div>
+        </div>
+
+        <!-- เลเยอร์สร้างเอฟเฟกต์แสงวาบสีขาว (White Flash) -->
+        <div class="white-flash" id="whiteFlash"></div>
+
+        <!-- หน้าคำแนะนำ -->
+        <div class="overlay-layer" id="overlayLayer">
+            <div class="countdown-number" id="countdownBox">3</div>
+            
+            <div class="info-box" id="infoBox">
+                <button class="close-btn" id="closeBtn" onclick="playClickSound(); closeInstructions();">X</button>
+                <p class="info-text">
+                    “ ยินดีต้อนรับสู่จักรวาลอนันตกาล ในโลกที่ไม่มีวันที่สิ้นสุดยินดีต้อนรับผู้เล่น ‘นาโน‘ ในคราวนี้โลกคือโลกแห่งความฝันในราชวงศ์ “
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- โหลดไฟล์เสียงองค์ประกอบและเอฟเฟกต์ต่างๆ -->
+    <audio id="bgmCinematic" src="https://assets.mixkit.co/active_storage/sfx/123/123-84.wav" loop preload="auto"></audio>
+    <audio id="sfxClick" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
+    <!-- ใช้เสียงเดิน Footstep คุณภาพสูง -->
+    <audio id="sfxFootstep" src="https://assets.mixkit.co/active_storage/sfx/979/979-84.wav" preload="auto"></audio>
+    <audio id="sfxBirds" src="https://assets.mixkit.co/active_storage/sfx/1344/1344-84.wav" preload="auto"></audio>
+    <audio id="sfxSword" src="https://assets.mixkit.co/active_storage/sfx/1885/1885-84.wav" preload="auto"></audio>
+    <audio id="sfxGrab" src="https://assets.mixkit.co/active_storage/sfx/2625/2625-84.wav" preload="auto"></audio>
+    
+    <!-- 🎵 🌟 อัปเดตลิงก์เพลงประกอบฉากจบใหม่ตามต้องการเรียบร้อยครับ -->
+    <audio id="bgmWaltz" src="https://familiar-lavender-e0lgqpyo.edgeone.dev/v1c044g50000d7jhrjvog65h2ppnk290.mp3" loop preload="auto"></audio>
+
+    <script>
+        // ==================== 🔊 ระบบจัดการเสียงเกมสังเคราะห์ (Web Audio API) ====================
+        let isMuted = false;
+        let audioCtx = null;
+
+        // ฟังก์ชันเริ่มใช้งาน AudioContext (เพื่อหลีกเลี่ยงข้อห้ามความปลอดภัยของเบราว์เซอร์)
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 🎵 สร้างเสียงสัมผัสเกม "ตึ๊ก" (สไตล์เกมโบราณแบบแหลมกำลังดี)
+        function playTukSound() {
+            if (isMuted) return;
+            initAudioContext();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            // เซ็ตชนิดคลื่นเสียงเป็นแบบ Triangle (ให้ความรู้สึกนุ่มแต่คมแหลมคล้ายยุคเรโทร)
+            osc.type = 'triangle';
+
+            // ความถี่แหลมกำลังดี (สไลด์จากความถี่ 800Hz ลงมา 250Hz อย่างเร็วมากเพื่อสร้างมิติเสียง ตึ๊ก)
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(250, audioCtx.currentTime + 0.08);
+
+            // ความดังสั้นกระชับ
+            gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.08);
+        }
+
+        const bgm = document.getElementById('bgmCinematic');
+        const bgmWaltz = document.getElementById('bgmWaltz');
+        const sfxClick = document.getElementById('sfxClick');
+        const sfxFootstep = document.getElementById('sfxFootstep');
+        const sfxBirds = document.getElementById('sfxBirds');
+        const sfxSword = document.getElementById('sfxSword');
+        const sfxGrab = document.getElementById('sfxGrab');
+
+        // เริ่มเล่น BGM
+        function startBGM() {
+            if (!isMuted) {
+                bgm.volume = 0.3;
+                bgmWaltz.pause();
+                bgm.play().catch(()=>{});
+            }
+        }
+
+        // เล่นเสียงเมื่อปุ่มโดนคลิก
+        function playClickSound() {
+            playTukSound(); // ส่งเสียงตึ๊กแหลมด้วยเสมอ
+            if (!isMuted) {
+                sfxClick.currentTime = 0;
+                sfxClick.volume = 0.3;
+                sfxClick.play().catch(()=>{});
+            }
+        }
+
+        // ปุ่ม เปิด/ปิด เสียง
+        function toggleMute(e) {
+            e.stopPropagation();
+            isMuted = !isMuted;
+            
+            const icon = document.getElementById('audioIcon');
+            const statusText = document.getElementById('audioStatusText');
+
+            if(isMuted) {
+                icon.innerText = "🔇";
+                statusText.innerText = "SOUND: OFF";
+                bgm.pause();
+                bgmWaltz.pause();
+                sfxBirds.pause(); sfxSword.pause(); sfxGrab.pause(); sfxFootstep.pause();
+            } else {
+                icon.innerText = "🔊";
+                statusText.innerText = "SOUND: ON";
+                // เช็คว่าหน้าตอนจบกำลังแสดงอยู่หรือไม่
+                if(document.getElementById('endingScreen').classList.contains('active')) {
+                    bgmWaltz.play().catch(()=>{});
+                } else {
+                    bgm.play().catch(()=>{});
+                }
+            }
+            playTukSound();
+        }
+
+        // ==================== ✨ เอฟเฟกต์ดวงดาวประกายสีขาวระยิบระยับ ====================
+        const container = document.getElementById('container');
+
+        container.addEventListener('click', (e) => {
+            // ไม่ว่าคลิกโดนอะไรในจอเกม ก็จะมีเสียง ตึ๊ก ตลอดเวลา
+            playTukSound();
+            createSparkles(e.clientX, e.clientY);
+        });
+
+        // ฟังก์ชันสร้างกลุ่มดาวประกายสีขาว
+        function createSparkles(x, y) {
+            const rect = container.getBoundingClientRect();
+            const clickX = x - rect.left;
+            const clickY = y - rect.top;
+
+            // ตัวเลือกสัญลักษณ์ดวงดาววิบวับแบบต่างๆ
+            const starSymbols = ['✦', '✧', '★', '☆'];
+
+            for (let i = 0; i < 8; i++) {
+                const star = document.createElement('div');
+                star.classList.add('sparkle-particle');
+                
+                // สุ่มสัญลักษณ์ดวงดาวขาว
+                star.innerText = starSymbols[Math.floor(Math.random() * starSymbols.length)];
+                
+                star.style.left = `${clickX}px`;
+                star.style.top = `${clickY}px`;
+                
+                // คำนวณองศาและระยะกระจายของดวงดาว
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 65 + 25;
+                const pX = Math.cos(angle) * distance;
+                const pY = Math.sin(angle) * distance;
+                
+                star.style.setProperty('--x', `${pX}px`);
+                star.style.setProperty('--y', `${pY}px`);
+                
+                // สุ่มขนาดดวงดาวเล็กใหญ่ไม่เท่ากัน
+                const randomSize = Math.random() * 12 + 12;
+                star.style.fontSize = `${randomSize}px`;
+                
+                container.appendChild(star);
+                setTimeout(() => { star.remove(); }, 800);
+            }
+        }
+
+        // ==================== 🎬 บทสนทนาในเกมและเอฟเฟกต์เสียง ====================
+        const dialogueData = [
+            { name: "???", text: "โอ๊ย!", action: "footsteps_pre_scene" },
+            { name: "ดาเรียน", text: "“เจ้าเป็นอะไรรึเปล่า… เจ็บตรงไหนหรือไม่…“", action: "normal" },
+            { name: "นาโน", text: "“เจ็บสิโว้ย!!! ถามอะไรโง่ๆ!”", action: "normal" },
+            { name: "องครักษ์/ผู้ติดตาม", text: "“บังอาจ! เจ้ากล้าหมิ่นประมาทท่านองค์รักทายาทได้ยังไง!!!”", action: "sword_sound" },
+            { name: "ดาเรียน", text: "“มิเป็นอันใดหรอก…เขาก็แค่ผู้ที่บังเอิญมาชนข้าก็เท่านั้น ข้ามิถือสาอันใด“", action: "normal" },
+            { name: "ดาเรียน", text: "“ลุกขึ้นมาสิ…จับมือข้าเอาไว้ก็ย่อมได้…”", action: "normal" },
+            { name: "นาโน", text: "“ขอบใจ! แต่ทีหลังไม่ต้อง!”", action: "show_illust" },
+            { name: "ดาเรียน", text: "”เดี๋ยวสิ… กลิ่นอายของเจ้า...มิเหมือนคนที่อยู่ในเขตอาณาจักรของเราเลย เจ้าเป็นผู้ใดกัน?“", action: "normal" },
+            { name: "นาโน", text: "”ฉันขอตัว!“", action: "grab_sound" },
+            { name: "ดาเรียน", text: "“ข้าบอกว่าเดี๋ยวไง!”", action: "normal" },
+            { name: "นาโน", text: "“เฮ้ย! ปล่อยนะโว้ยยยยยย!”", action: "normal" },
+            
+            // --- เพิ่มรายละเอียดบทสนทนาใหม่ตามคำขอ ---
+            { name: "ดาเรียน", text: "“ช่วย…ไปเต้นรำกับข้าในคืนก่อนที่ข้าครองราชย์ได้หรือไม่ เป็นวันที่ฉลอง… ‘วันเกิด‘ ครบ 20 ปีของข้า ในงานเลี้ยงของราชวงศ์ ช่วยมาเป็นคู่ให้ข้าทีได้ไหม?”", action: "normal" },
+            { name: "องครักษ์/ผู้ติดตาม", text: "“องค์รัชทายาท! มิได้นะพ่ะย่ะค่ะ!“", action: "normal" },
+            { name: "ดาเรียน", text: "”อย่าคิดจะขัดคำสั่งข้า… จงเงียบเสีย และเจ้าก็จงตอบข้า…“", action: "normal" },
+            { name: "นาโน", text: "“นายบ้าไปแล้วรึไง! ฉันเนี่ยนะจะยอมเต้นรำกับนาย!…“", action: "normal" },
+            { name: "", text: "(ก่อนที่ความวุ่นวายจะบานปลายไปมากกว่านี้ ทันใดนั้นก็พลันเกิดแสงสว่างวูบจ้าขึ้นมาปกคลุมทั่วทั้งโสตประสาท...)", action: "flash_ending" }
+        ];
+
+        let currentLine = 0;
+        const speakerName = document.getElementById('speakerName');
+        const dialogueText = document.getElementById('dialogueText');
+        const novelIllust = document.getElementById('novelIllust');
+
+        // เริ่มฉากเกมคัทซีนและเล่นเสียงฝีเท้า
+        function startNovelGame() {
+            document.getElementById('profileScreen').classList.remove('active');
+            document.getElementById('gamePlayScreen').classList.add('active');
+            document.getElementById('sunlight').classList.add('shine');
+            
+            // ซ่อนกล่องข้อความไว้ก่อนเพื่อเล่นเสียงฝีเท้า ตึก ตึก...
+            const dialogueBox = document.querySelector('.dialogue-box');
+            dialogueBox.style.pointerEvents = 'none'; 
+            dialogueBox.style.opacity = '0';
+
+            if (!isMuted) {
+                sfxBirds.volume = 0.3;
+                sfxBirds.play().catch(()=>{});
+
+                // เสียงฝีเท้าก้าวแรก: "ตึก"
+                setTimeout(() => {
+                    sfxFootstep.currentTime = 0; sfxFootstep.volume = 0.8;
+                    sfxFootstep.play().catch(()=>{});
+                }, 600);
+
+                // เสียงฝีเท้าก้าวที่สอง: "...ตึก"
+                setTimeout(() => {
+                    sfxFootstep.currentTime = 0; sfxFootstep.volume = 0.8;
+                    sfxFootstep.play().catch(()=>{});
+                }, 1400);
+            }
+
+            // หลังจากจบฝีเท้า 2 วินาที แสดงหน้าต่างคุยและมีเสียงคำว่า "โอ๊ย!"
+            setTimeout(() => {
+                dialogueBox.style.pointerEvents = 'auto';
+                dialogueBox.style.opacity = '1';
+                showDialogue();
+            }, 2200);
+        }
+
+        function showDialogue() {
+            if (currentLine >= dialogueData.length) return;
+
+            const current = dialogueData[currentLine];
+            speakerName.innerText = current.name;
+            dialogueText.innerText = current.text;
+
+            if(!isMuted) {
+                switch(current.action) {
+                    case "sword_sound":
+                        sfxSword.currentTime = 0; sfxSword.volume = 0.8; sfxSword.play().catch(()=>{});
+                        break;
+                    case "show_illust":
+                        novelIllust.classList.add('fade-in');
+                        break;
+                    case "grab_sound":
+                        sfxGrab.currentTime = 0; sfxGrab.volume = 0.6; sfxGrab.play().catch(()=>{});
+                        break;
+                    case "flash_ending":
+                        triggerEndingTransition();
+                        break;
+                }
+            } else {
+                if (current.action === "show_illust") {
+                    novelIllust.classList.add('fade-in');
+                } else if (current.action === "flash_ending") {
+                    triggerEndingTransition();
+                }
+            }
+        }
+
+        function nextDialogue() {
+            currentLine++;
+            showDialogue();
+        }
+
+        // ==================== 🎬 เอฟเฟกต์ฉากจบความฝันเต้นรำอุ่นๆ ====================
+        function triggerEndingTransition() {
+            const flash = document.getElementById('whiteFlash');
+            
+            // เล่นเสียงวาบแสงจ้า
+            flash.classList.add('active');
+            
+            setTimeout(() => {
+                // ปิดฉากนิยายและเปิดหน้าจอฉากจบเต้นรำ
+                document.getElementById('gamePlayScreen').classList.remove('active');
+                document.getElementById('endingScreen').classList.add('active');
+                
+                // ค่อยๆ ลดเสียง BGM แรก และเริ่มเปิดเพลงเต้นรำใหม่ของคุณ
+                if (!isMuted) {
+                    bgm.pause();
+                    bgmWaltz.volume = 0;
+                    bgmWaltz.play().catch(()=>{});
+                    
+                    // 🌟 ปรับให้เฟดเสียงเพลงใหม่ขึ้นมาดังเต็มอิ่มมากยิ่งขึ้น (ลิมิตความดังไว้ที่ 0.8 ตามคำขอ)
+                    let vol = 0;
+                    const fadeUp = setInterval(() => {
+                        vol += 0.05;
+                        if (vol >= 0.8) {
+                            bgmWaltz.volume = 0.8;
+                            clearInterval(fadeUp);
+                        } else {
+                            bgmWaltz.volume = vol;
+                        }
+                    }, 100);
+                }
+
+                // สลายเอฟเฟกต์แสงวาบ
+                flash.classList.remove('active');
+                flash.style.opacity = '1';
+                setTimeout(() => { flash.style.opacity = '0'; }, 50);
+
+                // สร้างละอองฝุ่นทองพริ้วไหว
+                createEndingDust();
+            }, 600);
+        }
+
+        function createEndingDust() {
+            const sparklesContainer = document.getElementById('endingSparkles');
+            sparklesContainer.innerHTML = '';
+            for(let i = 0; i < 25; i++) {
+                const dust = document.createElement('div');
+                dust.classList.add('dust-particle');
+                dust.style.left = Math.random() * 100 + '%';
+                dust.style.top = Math.random() * 100 + '%';
+                const size = Math.random() * 4 + 2;
+                dust.style.width = size + 'px';
+                dust.style.height = size + 'px';
+                dust.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                dust.style.animationDelay = (Math.random() * 3) + 's';
+                sparklesContainer.appendChild(dust);
+            }
+        }
+
+        function resetToTitle() {
+            document.getElementById('gamePlayScreen').classList.remove('active');
+            document.getElementById('profileScreen').classList.remove('active');
+            document.getElementById('endingScreen').classList.remove('active');
+            novelIllust.classList.remove('fade-in');
+            currentLine = 0;
+            
+            // หยุดเพลงวอลทซ์สลับมาเล่น BGM ปกติ
+            bgmWaltz.pause();
+            if(!isMuted) {
+                bgm.currentTime = 0;
+                bgm.volume = 0.3;
+                bgm.play().catch(()=>{});
+            }
+
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressText').innerText = '0%';
+            
+            const mainScreen = document.getElementById('mainScreen');
+            mainScreen.style.opacity = '1';
+        }
+
+        // ==================== ระบบทำงานทั่วไป ====================
+        function startDownload() {
+            startBGM();
+            const mainScreen = document.getElementById('mainScreen');
+            const downloadScreen = document.getElementById('downloadScreen');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            mainScreen.style.opacity = '0';
+            setTimeout(() => {
+                downloadScreen.classList.add('active');
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 4;
+                    progressBar.style.width = progress + '%';
+                    progressText.innerText = progress + '%';
+
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            downloadScreen.classList.remove('active');
+                            document.getElementById('storyScreen').classList.add('active');
+                        }, 500);
+                    }
+                }, 40);
+            }, 800);
+        }
+
+        function showCharacterProfile() {
+            document.getElementById('storyScreen').classList.remove('active');
+            document.getElementById('profileScreen').classList.add('active');
+        }
+
+        function showInstructions() {
+            startBGM();
+            const overlayLayer = document.getElementById('overlayLayer');
+            const countdownBox = document.getElementById('countdownBox');
+            const infoBox = document.getElementById('infoBox');
+            const closeBtn = document.getElementById('closeBtn');
+
+            overlayLayer.classList.add('active');
+            countdownBox.style.display = 'block';
+            
+            let count = 3;
+            countdownBox.innerText = count;
+
+            const countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownBox.innerText = count;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownBox.style.display = 'none';
+                    infoBox.style.display = 'block';
+                    setTimeout(() => { infoBox.classList.add('float-up'); }, 50);
+                    setTimeout(() => { closeBtn.style.opacity = '1'; }, 1200);
+                }
+            }, 1000);
+        }
+
+        function closeInstructions() {
+            const overlayLayer = document.getElementById('overlayLayer');
+            const infoBox = document.getElementById('infoBox');
+            const closeBtn = document.getElementById('closeBtn');
+
+            infoBox.classList.remove('float-up');
+            closeBtn.style.opacity = '0';
+            
+            setTimeout(() => {
+                overlayLayer.classList.remove('active');
+                infoBox.style.display = 'none';
+            }, 800);
+        }
+    </script>
+</body>
+</html>
